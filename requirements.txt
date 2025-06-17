@@ -1,0 +1,10 @@
+gradio
+pandas
+numpy
+python-dotenv
+langchain
+langchain-community
+langchain-chroma
+sentence-transformers
+tf-keras
+.env
