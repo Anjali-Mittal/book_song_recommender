@@ -37,7 +37,7 @@ documents = [
     for _, row in books.iterrows()
 ]
  #Loading env variables
-model_name = os.getenv("EMBEDDING_MODEL")
+model_name = "sentence-transformers/all-MiniLM-L6-v2"
 chroma_dir = os.getenv("CHROMA_DB_DIR")
 
 # Load the Hugging Face embedding model
