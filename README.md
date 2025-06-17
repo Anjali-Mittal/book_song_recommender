@@ -1,3 +1,18 @@
+---
+title: AI Book Recommender
+emoji: 📚
+colorFrom: indigo
+colorTo: purple
+sdk: gradio
+sdk_version: 4.18.0
+app_file: app.py
+pinned: false
+---
+
+# AI Book Recommender 📚✨
+
+Discover the perfect book for your mood using smart emotion detection and personalized recommendations powered by AI and NLP.
+git 
 # 📚 AI Book Recommender
 
 An intelligent book recommendation app built with Gradio, sentence transformers, and a vector database — just describe what you want or how you feel, and get personalized book suggestions instantly.
