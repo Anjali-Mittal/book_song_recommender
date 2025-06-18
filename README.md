@@ -26,9 +26,8 @@ An intelligent book recommendation app built with Gradio, sentence transformers,
 3. Get personalized book recommendations with summaries and covers!
 
 
-## 🚀 Try It
-Live deployment on [book recommender] 
-.(https://Anjali3Mittal-book-recommendations.hf.space).
+🎯 Check out the live deployment: [Book Recommender](https://Anjali3Mittal-book-recommendations.hf.space)
+
 
 ## 📁 Dataset
 
