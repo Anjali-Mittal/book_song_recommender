@@ -27,7 +27,7 @@ An intelligent book recommendation app built with Gradio, sentence transformers,
 
 
 ## 🚀 Try It
-Live deployment on [Render/Hugging Face Spaces].
+Live deployment on [book_recommender] .(https://Anjali3Mittal-book-recommendations.hf.space).
 
 ## 📁 Dataset
 
