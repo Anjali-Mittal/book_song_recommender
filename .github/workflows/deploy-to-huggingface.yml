@@ -1,0 +1,19 @@
+name: Deploy to Hugging Face
+
+on:
+  push:
+    branches:
+      - main  # or 'master' if you're using that
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Upload to Hugging Face
+        uses: huggingface/huggingface-cli-action@v0.1
+        with:
+          repo: Anjali3Mittal/book_recommendations
+          token: ${{ secrets.HF_TOKEN }}
