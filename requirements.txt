@@ -7,3 +7,4 @@ langchain-community
 langchain-chroma
 sentence-transformers
 tf-keras
+spotipy

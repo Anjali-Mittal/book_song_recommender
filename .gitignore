@@ -8,23 +8,21 @@ __pycache__/
 # 🧠 LangChain Chroma vector DB (can be rebuilt)
 chroma_books/
 
+# ✅ Keep final data notebooks
 !sentiment_analysis.ipynb
-text_classification.ipynb
-vector_search.ipynb
+!text_classification.ipynb
+!vector_search.ipynb
 !data_exploration.ipynb
 
-# 📊 Data files - keep only the final version
+# 📊 Data files - keep only final version
 books_classified.csv
 books_cleaned.csv
 
-# Keep this file in repo ✅
+# ✅ Keep this file in repo
 !books_with_emotions.csv
 
-# 🎨 Image placeholder (keep in repo)
+# 🎨 Image placeholder
 !cover_not_available.png
-
-# 🧠 Model or embedding output (optional if added later)
-*.pkl
 
 # ⚙️ VSCode settings
 .vscode/
@@ -33,5 +31,6 @@ books_cleaned.csv
 .DS_Store
 Thumbs.db
 
-# Gradio metadata (optional if auto-generated)
+# 🎛️ Gradio metadata (optional if auto-generated)
 .gradio/
+
