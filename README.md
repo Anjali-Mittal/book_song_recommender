@@ -1,14 +1,3 @@
--------------
-title: AI Book Recommender
-emoji: 📚
-colorFrom: indigo
-colorTo: purple
-sdk: gradio
-sdk_version: 4.18.0
-app_file: app.py
-pinned: false
--------------
-
 # 📚 AI Book And Song Recommender
 
 Discover the perfect book for your mood.  
