@@ -1,4 +1,4 @@
----
+-------------
 title: AI Book Recommender
 emoji: 📚
 colorFrom: indigo
@@ -7,47 +7,59 @@ sdk: gradio
 sdk_version: 4.18.0
 app_file: app.py
 pinned: false
----
+-------------
 
-# AI Book Recommender 📚✨
+# 📚 AI Book And Song Recommender
 
-Discover the perfect book for your mood using smart emotion detection and personalized recommendations powered by AI and NLP.
-git 
-# 📚 AI Book Recommender
+Discover the perfect book for your mood.  
+Powered by semantic embeddings, emotion-tagged data, and Spotify-matched songs — just describe what you feel or want, and this AI will do the rest.
 
-An intelligent book recommendation app built with Gradio, sentence transformers, and a vector database — just describe what you want or how you feel, and get personalized book suggestions instantly.
+-------------------------------
 
-## 🔍 Features
+## 🚀 Features
 
-- Emotion and category-based book filtering
-- Visual cards with thumbnails and author details
-- Fast, semantic search using embeddings
-- Gradio-powered interactive UI
+- 🧠 **Smart Book Search** — Uses semantic similarity for intent-based discovery  
+- 😄 **Emotion-Aware Filtering** — Joy, Sadness, Anger, and more  
+- 📂 **Genre Selection** — Optional category filtering  
+- 🖼️ **Visual Cards** — Covers, titles, authors, and blurbs  
+- 🎧 **Spotify Song Pairings** — Matching music for your current vibe  
+- ⚡ **Fast Retrieval** — Optimized vector search with ChromaDB
+
+-----------------------------
 
 ## 🛠️ Tech Stack
 
-- Python
-- Gradio
-- Sentence Transformers
-- Langchain + ChromaDB
-- Pandas
-- Numpy
-- HuggingFace Embeddings
+- **Python 3.10+**
+- **Gradio 4.x** — UI and app logic
+- **HuggingFace Sentence Transformers** — Embeddings for semantic search
+- **LangChain + ChromaDB** — Vector DB backend for fast similarity search
+- **Pandas & NumPy** — For data handling
+- **Spotipy** — Spotify API integration
 
-## 💡 How to Use
-
-1. Describe what you're looking for (e.g., *"a fast-paced thriller with twists"*)
-2. Optionally filter by genre or emotion
-3. Get personalized book recommendations with summaries and covers!
-
-
-🎯 Check out the live deployment: [Book Recommender](https://Anjali3Mittal-book-recommendations.hf.space)
-
+------------------------
 
 ## 📁 Dataset
 
-Custom dataset of thousands of books with categories and emotion-tagged descriptions.
+A curated dataset of **thousands of books** with metadata:
 
----
+- Cleaned and categorized
+- Emotion-tagged using NLP
+- Enhanced with thumbnail cover images
+- Indexed in vector DB
+
+-----------------------
+
+## 💡 How to Use
+
+1. Type a description like _“a dark, suspenseful psychological mystery”_
+2. (Optional) Choose a genre and an emotion filter
+3. View instant recommendations with book info and matching Spotify tracks
+
+-----------------------
+
+## 🧾 License
+
+MIT License © 2025 Anjali Mittal  
+
 
 Made with ❤️ by [Anjali Mittal](https://github.com/Anjali-Mittal)

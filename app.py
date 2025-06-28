@@ -14,6 +14,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
+from src.songs_loader import load_song_documents
 
 load_dotenv()
 books=pd.read_csv("books_with_emotions.csv")
@@ -54,84 +55,60 @@ db_books = Chroma.from_documents(
     embedding=embedding_model,
     persist_directory=chroma_dir
 )
-# Get song recs using Spotify API
+
+db_songs = Chroma(
+    persist_directory="song_vector_db",
+    embedding_function=embedding_model
+)
+
 def get_spotify_recommendations(user_query, tone=None, limit=10):
     try:
-        search_results = sp.search(q=user_query, type='track', limit=1)
-        if not search_results['tracks']['items']:
-            return []
+        recs = db_songs.similarity_search(user_query, k=50)  # slightly higher to allow filtering
+        seen = set()
+        songs = []
 
-        seed_track = search_results['tracks']['items'][0]
-        seed_track_id = seed_track['id']
+        for rec in recs:
+            meta = rec.metadata
+            title = meta["title"]
+            artist = meta["artist"]
+            image_url = meta.get("image_url", "")
+            key = (title.lower(), artist.lower())
 
-        mood_valence = {
-            "Joy": 0.9, "Surprise": 0.7, "Anger": 0.2,
-            "Fear": 0.3, "Sadness": 0.1, "Trust": 0.6
-        }
-        valence = mood_valence.get(tone, 0.5)
+            if key in seen or len(title) > 35:
+                continue
 
-        try:
-            recs = sp.recommendations(
-                seed_tracks=[seed_track_id],
-                limit=limit,
-                target_valence=valence
-            )
-            songs = []
-            seen = set()  # To track unique songs
+            seen.add(key)
+            songs.append({
+                "title": title,
+                "artist": artist,
+                "spotify_url": meta["spotify_url"],
+                "image_url": image_url
+            })
 
-            for track in recs['tracks']:
-                    title = track['name']
-                    artist = track['artists'][0]['name']
-                    key = (title.lower(), artist.lower())  # Case-insensitive
+            if len(songs) >= limit:
+                break
 
-                    if key in seen or len(title) > 35:
-                        continue  # Skip duplicates or long titles
-
-                    seen.add(key)
-                    songs.append({
-                        'title': title,
-                        'artist': artist,
-                        'spotify_url': track['external_urls']['spotify'],
-                        'image_url': track['album']['images'][0]['url'] if track['album']['images'] else ""
-                    })
-            return songs
-
-        except Exception as e:
-            print(f"[Spotify Fallback] Rec error: {e}")
-            # fallback: search again with broader limit
-            fallback_results = sp.search(q=user_query, type='track', limit=limit)
-            songs = []
-            for track in fallback_results['tracks']['items']:
-                songs.append({
-                    'title': track['name'],
-                    'artist': track['artists'][0]['name'],
-                    'spotify_url': track['external_urls']['spotify'],
-                    'image_url': track['album']['images'][0]['url'] if track['album']['images'] else ""
-                })
-
-            return songs
+        return songs
 
     except Exception as e:
-        print(f"[Spotify Error] {e}")
+        print(f"[Semantic Spotify Search Error] {e}")
         return []
-
-
-
+    
+# Semantic Book Recommendations
 def semantic_recommendation(query,
             category: str='None',
             tone: str='No',
-            initial_top_k:int=100,
-            top_k:int=20)-> pd.DataFrame:
-    recs=db_books.similarity_search(query,k=initial_top_k)
-    books_list=[int(rec.page_content.strip('"').split()[0]) for rec in recs]
-    book_recs=books[books["isbn13"].isin(books_list)].head(top_k)
-    # if user chose a filter category, filter the recommendations
-    if category != "All":
-        book_recs = book_recs[book_recs["mapped_category"] == category][:top_k]
-    else:
-        book_recs = book_recs.head(top_k)
+            top_k:int=30,
+            initial_top_k:int=30*30,) -> pd.DataFrame:
 
-    # filter according to a particular tone
+    recs = db_books.similarity_search(query, k=initial_top_k)
+    books_list = [int(rec.metadata['isbn13']) for rec in recs if 'isbn13' in rec.metadata]
+
+    book_recs = books[books["isbn13"].isin(books_list)]
+
+    if category != "All":
+        book_recs = book_recs[book_recs["mapped_category"] == category]
+
     if tone == "Joy":
         book_recs.sort_values(by="joy", ascending=False, inplace=True)
     elif tone == "Surprise":
@@ -141,10 +118,13 @@ def semantic_recommendation(query,
     elif tone == "Fear":
         book_recs.sort_values(by="fear", ascending=False, inplace=True)
     elif tone == "Sadness":
-        book_recs.sort_values(by="sadness",ascending=False,inplace=True)
+        book_recs.sort_values(by="sadness", ascending=False, inplace=True)
     elif tone == "Trust":
-        book_recs.sort_values(by="trust",ascending=False,inplace=True)
-    return book_recs
+        book_recs.sort_values(by="trust", ascending=False, inplace=True)
+
+    return book_recs.head(top_k)
+
+
 
 
 def get_book_details(query: str, category: str, tone: str):
@@ -152,63 +132,72 @@ def get_book_details(query: str, category: str, tone: str):
         recommendations = semantic_recommendation(query, category, tone)
         html_output = ""
 
-        for _, row in recommendations.iterrows():
-            authors_split = row["authors"].split(";")
-            if len(authors_split) == 2:
-                authors = f"{authors_split[0]} and {authors_split[1]}"
-            elif len(authors_split) > 2:
-                authors = f"{', '.join(authors_split[:-1])}, and {authors_split[-1]}"
-            else:
-                authors = row["authors"]
+        # 📚 Book Recommendations
+        if not recommendations.empty:
+            html_output += "<b>📚 Recommended Books</b><br>"
+            for _, row in recommendations.iterrows():
+                authors_split = row["authors"].split(";")
+                if len(authors_split) == 2:
+                    authors = f"{authors_split[0]} and {authors_split[1]}"
+                elif len(authors_split) > 2:
+                    authors = f"{', '.join(authors_split[:-1])}, and {authors_split[-1]}"
+                else:
+                    authors = row["authors"]
 
-            description = row["description"]
-            truncated_description = (
-                description[:300] + "..." if len(description) > 300 else description
-            )
+                description = row.get("description", "")
+                truncated_description = (
+                    description[:300] + "..." if len(description) > 300 else description
+                )
+                image_url = row.get('large_thumbnail') or "cover_not_available.png"
 
-            html_output += f"""
-            <div style="display:inline-block;width:200px;margin:10px;vertical-align:top;">
-                <img src="{row['large_thumbnail']}" width="150" height="220" style="border-radius:8px;"><br>
-                <b>{row['title']}</b><br><i>by {authors}</i><br><small>{truncated_description}</small>
-            </div>
-            """
+                html_output += f"""
+                <div style="display:inline-block;width:200px;margin:10px;vertical-align:top;">
+                    <img src="{image_url}" width="150" height="220" style="border-radius:8px;"><br>
+                    <b>{row['title']}</b><br><i>by {authors}</i><br><small>{truncated_description}</small>
+                </div>
+                """
+        else:
+            html_output += "<p>No books found matching your description.</p>"
 
-        # 🎧 Add Spotify recommendations
+        # 🎧 Spotify Song Recommendations
         try:
             songs = get_spotify_recommendations(query, tone if tone != "All" else None)
             if songs:
                 html_output += "<hr><b>🎵 Matching Songs</b><div style='overflow-x:auto; white-space:nowrap;'>"
                 for song in songs:
-                        if len(song['title']) > 35:
-                            continue  # Skip long titles
+                    title = song.get('title', 'Untitled')
+                    artist = song.get('artist', 'Unknown Artist')
+                    image = song.get('image_url')
+                    if not image or not image.startswith("http"):
+                        image = "https://via.placeholder.com/140x140.png?text=No+Cover"
 
-                        html_output += f"""
-                        <div style="display:inline-block; width:180px; margin:10px; vertical-align:top;">
-                            <a href="{song['spotify_url']}" target="_blank" style="text-decoration:none; color:black;">
-                                <div style="text-align:center;">
-                                    <b style="display:block; margin-bottom:5px;">{song['title']}</b>
-                                    <img src="{song.get('image_url', '')}" width="140" height="140" style="border-radius:8px; display:block; margin:auto;">
-                                    <small style="display:block; margin-top:5px;">{song['artist']}</small>
-                                </div>
-                            </a>
-                        </div>
-                        """
+                    url = song.get('spotify_url', '#')
 
-
+                    html_output += f"""
+                    <div style="display:inline-block; width:180px; margin:10px; vertical-align:top;">
+                        <a href="{url}" target="_blank" style="text-decoration:none; color:black;">
+                            <div style="text-align:center;">
+                                <b style="display:block; margin-bottom:5px;">{title}</b>
+                                <img src="{image}" width="140" height="140" style="border-radius:8px; display:block; margin:auto;">
+                                <small style="display:block; margin-top:5px;">{artist}</small>
+                            </div>
+                        </a>
+                    </div>
+                    """
                 html_output += "</div>"
-        except Exception as e:
-            print(f"[Song Rec Error] {e}")
+            else:
+                html_output += "<p>No matching songs found.</p>"
 
-        # 🔧 If nothing collected, show fallback
-        if not html_output:
-            html_output = "No recommendations found."
+        except Exception as song_error:
+            print(f"[Song Rec Error] {song_error}")
+            html_output += "<p>⚠️ Couldn't fetch songs right now. Try again later.</p>"
 
-        print(f"[DEBUG] Book recs: {len(recommendations)}")
-        print(f"[DEBUG] Song recs: {len(songs) if 'songs' in locals() else 0}")
         return html_output
 
-    except Exception as e:
-        return f"⚠️ Error: {str(e)}"
+    except Exception as main_error:
+        print(f"[Book Rec Error] {main_error}")
+        return "<p>⚠️ Something went wrong while fetching your recommendations. Please try a different query.</p>"
+
 
 # CREATING DROPDOWNS
 categories =["All"] + sorted(books["mapped_category"].dropna().astype(str).unique().tolist())
@@ -220,7 +209,7 @@ with gr.Blocks(theme=gr.themes.Soft) as dashboard:
     gr.Markdown("## 📚Book Recommender\nDescribe what you’re feeling or looking for in a book.")
 
     with gr.Row():
-        user_query = gr.Textbox(
+            user_query = gr.Textbox(
             label="📖 Describe a book you want",
             placeholder="A thrilling mystery...",
         )

@@ -1,36 +1,31 @@
-# ⚙️ Environment variables (security)
-.env
-
-# 🔁 Python cache files
+# 🔁 Python bytecode & caches
 __pycache__/
-*.pyc
+*.py[cod]
+*.log
 
-# 🧠 LangChain Chroma vector DB (can be rebuilt)
-chroma_books/
-
-# ✅ Keep final data notebooks
-!sentiment_analysis.ipynb
-!text_classification.ipynb
-!vector_search.ipynb
-!data_exploration.ipynb
-
-# 📊 Data files - keep only final version
-books_classified.csv
-books_cleaned.csv
-
-# ✅ Keep this file in repo
-!books_with_emotions.csv
-
-# 🎨 Image placeholder
-!cover_not_available.png
-
-# ⚙️ VSCode settings
+# ⚙️ VS Code settings
 .vscode/
 
-# 🗂️ System files
-.DS_Store
-Thumbs.db
+# 🔒 Environment variables
+.env
+.env.*
 
-# 🎛️ Gradio metadata (optional if auto-generated)
-.gradio/
+# 🧠 ML / Embedding model caches
+.cache/
+sentence_transformers/
+huggingface/
+
+# 📚 Local data & vector DBs
+data/
+!data/books_with_emotions.csv
+chroma_books/
+song_vector_db/
+
+# 🔊 Gradio cache files
+*.gradio
+gradio_cached_*/
+
+# 🔄 JSONL raw files (if generated locally)
+*.jsonl
+
 
