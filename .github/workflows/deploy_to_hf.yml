@@ -16,7 +16,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }} # Reference the GitHub secret
         run: |
-          git config --global user.email "anjalimittal.bvcoe@gmail.com"
-          git config --global user.name "Anjali-Mittal"
+          git config --global user.email anjalimittal.bvcoe@gmail.com
+          git config --global user.name Anjali-Mittal
           git remote add hf https://huggingface.co/spaces/Anjali3Mittal/book_recommmendations
           git push hf main
