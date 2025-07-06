@@ -12,7 +12,7 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true # If you have large files
-      - name: Push to Hugging Face Space
+      - name: Push to Hugging Face Space Interface
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }} # Reference the GitHub secret
         run: |
